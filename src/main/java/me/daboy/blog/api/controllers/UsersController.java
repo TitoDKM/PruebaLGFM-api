@@ -80,14 +80,53 @@ public class UsersController {
     }
 
     @GetMapping("/info")
-    public HttpEntity<HashMap<String, Object>> userInfo(@RequestParam Long id) {
+    public HttpEntity<HashMap<String, Object>> userInfo(@RequestParam String email) {
         HashMap<String, Object> jsonResponse = new HashMap<>();
 
-        Optional<User> user = usersRepository.findById(id);
+        Optional<User> user = usersRepository.findByEmail(email);
         if(!user.isPresent()) ResponseEntity.notFound().build();
 
-        jsonResponse.put("user", user.get());
+        User returnUser = user.get();
+        returnUser.setPassword(null);
 
+        jsonResponse.put("user", returnUser);
+
+        return ResponseEntity.ok(jsonResponse);
+    }
+
+    @PostMapping("/save")
+    public HttpEntity<HashMap<String, Object>> saveInfo(@RequestBody Map<String, Object> payload) {
+        HashMap<String, Object> jsonResponse = new HashMap<>();
+
+        if(payload.isEmpty() || !payload.containsKey("email") || !payload.containsKey("firstname") || !payload.containsKey("lastname")) {
+            jsonResponse.put("message", "Rellena los campos obligatorios para continuar");
+            return ResponseEntity.badRequest().body(jsonResponse);
+        }
+
+        Optional<User> user = usersRepository.findByEmail(payload.get("email").toString());
+        if(!user.isPresent()) {
+            jsonResponse.put("message", "Ha ocurrido un error al actualizar tus datos");
+            return ResponseEntity.badRequest().body(jsonResponse);
+        }
+
+        if(payload.get("firstname").equals("") || payload.get("lastname").equals("")) {
+            jsonResponse.put("message", "Los campos \"Nombre\" y \"Apellido\" son obligatorios");
+            return ResponseEntity.badRequest().body(jsonResponse);
+        }
+
+        if(!payload.get("firstname").equals(user.get().getFirstname()))
+            user.get().setFirstname(payload.get("firstname").toString());
+        if(!payload.get("lastname").equals(user.get().getLastname()))
+            user.get().setLastname(payload.get("lastname").toString());
+        if(!payload.get("phone").equals(user.get().getPhone()))
+            user.get().setPhone(payload.get("phone").toString());
+        if(!payload.get("location").equals(user.get().getLocation()))
+            user.get().setLocation(payload.get("location").toString());
+        if(!payload.get("biography").equals(user.get().getBiography()))
+            user.get().setBiography(payload.get("biography").toString());
+
+        usersRepository.save(user.get());
+        jsonResponse.put("user", user.get());
         return ResponseEntity.ok(jsonResponse);
     }
 
