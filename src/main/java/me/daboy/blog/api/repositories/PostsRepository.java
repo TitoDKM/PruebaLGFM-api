@@ -12,4 +12,5 @@ import java.util.Optional;
 public interface PostsRepository extends PagingAndSortingRepository<Post, Long> {
     Optional<Post> findById(Long id);
     Page<Post> findAllByCategory(Long id, Pageable pageable);
+    Page<Post> findAllByTitleContainingOrBodyContaining(String title, String body, Pageable pageable);
 }

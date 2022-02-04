@@ -65,16 +65,31 @@ public class PostsController {
             jsonResponse.put("category_id", cat.get().getId());
             jsonResponse.put("image", post.get().getImage());
             jsonResponse.put("body", post.get().getBody());
+            jsonResponse.put("comments_type", post.get().getCommentsType());
         }
         else return ResponseEntity.notFound().build();
 
         return ResponseEntity.ok(jsonResponse.toString());
     }
 
+    @GetMapping("/search")
+    public HttpEntity<HashMap<String, Object>> getPost(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "25") int size, @RequestParam String search) {
+        HashMap<String, Object> jsonResponse = new HashMap<>();
+        Pageable first = PageRequest.of(page, size);
+
+        Page<Post> allPosts = postsRepository.findAllByTitleContainingOrBodyContaining(search, search, first);
+        jsonResponse.put("posts", allPosts.getContent());
+        jsonResponse.put("total", allPosts.getTotalElements());
+        jsonResponse.put("current", allPosts.getNumber());
+        jsonResponse.put("pages", allPosts.getTotalPages());
+
+        return ResponseEntity.ok(jsonResponse);
+    }
+
     @PostMapping("/create")
     public HttpEntity<HashMap<String, Object>> addPost(@RequestBody Map<String, Object> payload) {
         HashMap<String, Object> jsonResponse = new HashMap<>();
-        if(payload.isEmpty() || payload.get("title").equals("") || payload.get("category").equals("") || payload.get("comments").equals("") || payload.get("image").equals("") || payload.get("body").equals("")) {
+        if(payload.isEmpty() || payload.get("title").equals("") || payload.get("category").equals("") || payload.get("comments").equals("") || payload.get("body").equals("")) {
             jsonResponse.put("message", "Rellena todos los campos para realizar una publicación");
             return ResponseEntity.badRequest().body(jsonResponse);
         }
@@ -84,16 +99,32 @@ public class PostsController {
             jsonResponse.put("messsage", "Ha ocurrido un error al crear la publicación, vuelve a intentarlo");
             return ResponseEntity.badRequest().body(jsonResponse);
         }
-
-        Timestamp timestamp = new Timestamp(System.currentTimeMillis());
-
         String body = payload.get("body").toString();
         body = body.replaceAll("&nbsp;", "");
 
-        Post post = new Post(null, owner.get().getId(), payload.get("title").toString(), body, timestamp, Long.valueOf(payload.get("category").toString()), "/assets/images/uploads/" + payload.get("image").toString());
-        Post createdPost = postsRepository.save(post);
+        if(payload.containsKey("id") && !payload.get("id").toString().equals("")) {
+            Optional<Post> post = postsRepository.findById(Long.valueOf(payload.get("id").toString()));
+            if(!post.isPresent()) {
+                jsonResponse.put("messsage", "Ha ocurrido un error al editar la publicación, vuelve a intentarlo");
+                return ResponseEntity.badRequest().body(jsonResponse);
+            }
 
-        jsonResponse.put("id", createdPost.getId());
+            post.get().setTitle(payload.get("title").toString());
+            post.get().setBody(payload.get("body").toString());
+            post.get().setCategory(Long.valueOf(payload.get("category").toString()));
+            post.get().setCommentsType(Integer.valueOf(payload.get("comments").toString()));
+            if(!payload.get("image").equals(""))
+                post.get().setImage("/assets/images/uploads/" + payload.get("image").toString());
+            postsRepository.save(post.get());
+
+            jsonResponse.put("id", post.get().getId());
+        } else {
+            Post post = new Post(null, owner.get().getId(), payload.get("title").toString(), body, new Timestamp(System.currentTimeMillis()), Long.valueOf(payload.get("category").toString()),
+                    "/assets/images/uploads/" + payload.get("image").toString(), Integer.valueOf(payload.get("comments").toString()));
+            Post createdPost = postsRepository.save(post);
+
+            jsonResponse.put("id", createdPost.getId());
+        }
         return ResponseEntity.ok(jsonResponse);
     }
 }

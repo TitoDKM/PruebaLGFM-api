@@ -17,9 +17,12 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .authorizeRequests()
                 .antMatchers("/api/users/login", "/api/users/register").permitAll()
                 .antMatchers("/api/categories*", "/api/categories/*").permitAll()
-                .antMatchers("/api/posts/**").permitAll()
+                .antMatchers("/api/posts/**", "/api/posts/search").permitAll()
                 .antMatchers("/api/files/upload").permitAll()
-                .anyRequest().authenticated();
+                .antMatchers("/api/comments", "/api/comments/anon").permitAll()
+                .anyRequest().authenticated()
+                .and()
+                .oauth2Login().loginPage("/oauth_login");
         http.addFilterBefore(new JWTAuthorizationFilter(), UsernamePasswordAuthenticationFilter.class);
     }
 

@@ -27,11 +27,13 @@ public class User {
     private String biography;
     @Column
     private String location;
+    @Column
+    private String photo;
 
     public User() {
     }
 
-    public User(Long id, String email, String password, String phone, String username, String firstname, String lastname, String resume, String biography, String location) {
+    public User(Long id, String email, String password, String phone, String username, String firstname, String lastname, String resume, String biography, String location, String photo) {
         this.id = id;
         this.email = email;
         this.password = password;
@@ -42,6 +44,7 @@ public class User {
         this.resume = resume;
         this.biography = biography;
         this.location = location;
+        this.photo = photo;
     }
 
     public Long getId() {
@@ -122,5 +125,13 @@ public class User {
 
     public void setLocation(String location) {
         this.location = location;
+    }
+
+    public String getPhoto() {
+        return photo;
+    }
+
+    public void setPhoto(String photo) {
+        this.photo = photo;
     }
 }

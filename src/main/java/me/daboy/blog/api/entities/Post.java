@@ -22,11 +22,13 @@ public class Post {
     private Long category;
     @Column
     private String image;
+    @Column(name="comments_type")
+    private Integer commentsType;
 
     public Post() {
     }
 
-    public Post(Long id, Long author, String title, String body, Timestamp date, Long category, String image) {
+    public Post(Long id, Long author, String title, String body, Timestamp date, Long category, String image, Integer commentsType) {
         this.id = id;
         this.author = author;
         this.title = title;
@@ -34,6 +36,7 @@ public class Post {
         this.date = date;
         this.category = category;
         this.image = image;
+        this.commentsType = commentsType;
     }
 
     public Long getId() {
@@ -90,5 +93,13 @@ public class Post {
 
     public void setImage(String image) {
         this.image = image;
+    }
+
+    public Integer getCommentsType() {
+        return commentsType;
+    }
+
+    public void setCommentsType(Integer commentsType) {
+        this.commentsType = commentsType;
     }
 }

@@ -44,6 +44,9 @@ public class UsersController {
 
         String token = generateToken(payload.get("email").toString());
         jsonResponse.put("token", token);
+        jsonResponse.put("id", user.get().getId());
+        jsonResponse.put("email", user.get().getEmail());
+        jsonResponse.put("photo", user.get().getPhoto());
 
         return ResponseEntity.ok(jsonResponse);
     }
@@ -70,7 +73,7 @@ public class UsersController {
             return ResponseEntity.badRequest().body(jsonResponse);
         }
 
-        User newUser = new User(null, email, bCryptPasswordEncoder.encode(password), "", "", payload.get("name").toString(), payload.get("surname").toString(), "", "", payload.get("location").toString());
+        User newUser = new User(null, email, bCryptPasswordEncoder.encode(password), "", "", payload.get("name").toString(), payload.get("surname").toString(), "", "", payload.get("location").toString(), "/assets/images/default.jpeg");
         usersRepository.save(newUser);
 
         String token = generateToken(email);
@@ -124,6 +127,8 @@ public class UsersController {
             user.get().setLocation(payload.get("location").toString());
         if(!payload.get("biography").equals(user.get().getBiography()))
             user.get().setBiography(payload.get("biography").toString());
+        if(!payload.get("photo").equals(""))
+            user.get().setPhoto("/assets/images/uploads/" + payload.get("photo").toString());
 
         usersRepository.save(user.get());
         jsonResponse.put("user", user.get());
